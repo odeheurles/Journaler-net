@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Journaler.PerfTests
 {
@@ -9,6 +6,7 @@ namespace Journaler.PerfTests
     {
         static void Main(string[] args)
         {
+            Console.ReadKey();
         }
     }
 }

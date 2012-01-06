@@ -1,0 +1,9 @@
+ - Implement Journaler writer + unit tests
+ - Implement simple journaler reader + unit tests
+ - Write perf tests
+ - Build script
+ - NuGet Package
+ - Disruptor adapter
+ - Update readme:
+   - where I found infos (SQLIO, SequentialFileProgrammingDotNet, etc)
+   - how it works, what is does

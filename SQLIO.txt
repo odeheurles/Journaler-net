@@ -1,0 +1,1 @@
+C:\Program Files (x86)\SQLIO>sqlio.exe -kW -t1 -s30 -f1 -b128 -i32768 -LS
