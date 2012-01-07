@@ -1,4 +1,3 @@
- - Implement Journaler writer + unit tests
  - Implement simple journaler reader + unit tests
  - Write perf tests
  - Build script

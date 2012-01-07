@@ -23,25 +23,25 @@ namespace Journaler.Tests
         public void WriteByteDoesNotCallBlockWriterAutomatically()
         {
             _writer.WriteByte(1, false);
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Never());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Never());
         }
 
         [Test]
         public void WriteByteWithFlushWritesToBlockWriter()
         {
             const byte value = 1;
-            _blockWriterMock.Setup(blockWriter=>blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) =>
+            _blockWriterMock.Setup(blockWriter=>blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) =>
                                           {
                                               Assert.AreEqual(false, moveToNextBlock);
-                                              Assert.AreEqual(BufferSize, segment.Count);
-                                              Assert.AreEqual(value, segment.Array[0]);
+                                              Assert.AreEqual(BufferSize, block.Length);
+                                              Assert.AreEqual(value, block[0]);
                                           })
                             .Verifiable();
 
             _writer.WriteByte(value, true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Once());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Once());
         }
 
         [Test]
@@ -50,17 +50,17 @@ namespace Journaler.Tests
             const byte value = 1;
             MoveToEndOfBlockMinus(sizeof(byte));
 
-            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) =>
+            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) =>
                                             {
                                                 Assert.AreEqual(true, moveToNextBlock);
-                                                Assert.AreEqual(value, segment.Array[BufferSize - 1]);
+                                                Assert.AreEqual(value, block[BufferSize - 1]);
                                             })
                             .Verifiable();
 
             _writer.WriteByte(value, true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Once());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Once());
         }
 
         [Test]
@@ -73,24 +73,24 @@ namespace Journaler.Tests
         public void WriteIntDoesNotCallBlockWriterAutomatically()
         {
             _writer.WriteInt(1, false);
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Never());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Never());
         }
 
         [Test]
         public void WriteIntWithFlushWritesToBlockWriter()
         {
-            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) =>
+            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) =>
                             {
                                 Assert.AreEqual(false, moveToNextBlock);
-                                Assert.AreEqual(BufferSize, segment.Count);
-                                Assert.AreEqual(1, BitConverter.ToInt32(segment.Array, 0));
+                                Assert.AreEqual(BufferSize, block.Length);
+                                Assert.AreEqual(1, BitConverter.ToInt32(block, 0));
                             })
                             .Verifiable();
 
             _writer.WriteInt(1, true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Once());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Once());
         }
 
         [Test]
@@ -98,13 +98,13 @@ namespace Journaler.Tests
         {
             MoveToEndOfBlockMinus(sizeof(int));
 
-            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) => Assert.AreEqual(true, moveToNextBlock))
+            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) => Assert.AreEqual(true, moveToNextBlock))
                             .Verifiable();
 
             _writer.WriteInt(1, true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Once());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Once());
         }
 
         [Test]
@@ -114,8 +114,8 @@ namespace Journaler.Tests
             bool firstCallback = true;
 
             // need sequence in Moq..
-            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) =>
+            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) =>
                                           {
                                               if(firstCallback)
                                               {
@@ -131,7 +131,7 @@ namespace Journaler.Tests
             
             _writer.WriteInt(1, true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Exactly(2));
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Exactly(2));
         }
 
         [Test]
@@ -144,24 +144,24 @@ namespace Journaler.Tests
         public void WriteLongDoesNotCallBlockWriterAutomatically()
         {
             _writer.WriteLong(1, false);
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Never());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Never());
         }
 
         [Test]
         public void WriteLongWithFlushWritesToBlockWriter()
         {
-            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) =>
+            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) =>
                             {
                                 Assert.AreEqual(false, moveToNextBlock);
-                                Assert.AreEqual(BufferSize, segment.Count);
-                                Assert.AreEqual(1, BitConverter.ToInt64(segment.Array, 0));
+                                Assert.AreEqual(BufferSize, block.Length);
+                                Assert.AreEqual(1, BitConverter.ToInt64(block, 0));
                             })
                             .Verifiable();
 
             _writer.WriteLong(1, true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Once());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Once());
         }
 
         [Test]
@@ -169,13 +169,13 @@ namespace Journaler.Tests
         {
             MoveToEndOfBlockMinus(sizeof(long));
 
-            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) => Assert.AreEqual(true, moveToNextBlock))
+            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) => Assert.AreEqual(true, moveToNextBlock))
                             .Verifiable();
 
             _writer.WriteLong(1, true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Once());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Once());
         }
 
         [Test]
@@ -185,8 +185,8 @@ namespace Journaler.Tests
             bool firstCallback = true;
 
             // need sequence in Moq..
-            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) =>
+            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) =>
                             {
                                 if (firstCallback)
                                 {
@@ -202,7 +202,7 @@ namespace Journaler.Tests
 
             _writer.WriteLong(1, true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Exactly(2));
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Exactly(2));
         }
 
         [Test]
@@ -215,7 +215,7 @@ namespace Journaler.Tests
         public void WriteBytesDoesNotCallBlockWriterAutomatically()
         {
             _writer.WriteBytes(CreateArraySegment(4), false);
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Never());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Never());
         }
 
         [Test]
@@ -224,21 +224,21 @@ namespace Journaler.Tests
             const int length = 4;
             var input = CreateArraySegment(length);
 
-            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) =>
+            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) =>
                             {
                                 Assert.AreEqual(false, moveToNextBlock);
-                                Assert.AreEqual(BufferSize, segment.Count);
+                                Assert.AreEqual(BufferSize, block.Length);
                                 for (int i = 0; i < length; i++)
                                 {
-                                    Assert.AreEqual(input.Array[i], segment.Array[i]);
+                                    Assert.AreEqual(input.Array[i], block[i]);
                                 }
                             })
                             .Verifiable();
 
             _writer.WriteBytes(input, true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Once());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Once());
         }
 
         [Test]
@@ -247,13 +247,13 @@ namespace Journaler.Tests
             const int length = 4;
             MoveToEndOfBlockMinus(length);
 
-            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) => Assert.AreEqual(true, moveToNextBlock))
+            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) => Assert.AreEqual(true, moveToNextBlock))
                             .Verifiable();
 
             _writer.WriteBytes(CreateArraySegment(length), true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Once());
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Once());
         }
 
         [Test]
@@ -263,8 +263,8 @@ namespace Journaler.Tests
             bool firstCallback = true;
 
             // need sequence in Moq..
-            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()))
-                            .Callback((ArraySegment<byte> segment, bool moveToNextBlock) =>
+            _blockWriterMock.Setup(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()))
+                            .Callback((byte[] block, bool moveToNextBlock) =>
                             {
                                 if (firstCallback)
                                 {
@@ -280,7 +280,7 @@ namespace Journaler.Tests
 
             _writer.WriteBytes(CreateArraySegment(4), true);
 
-            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<ArraySegment<byte>>(), It.IsAny<bool>()), Times.Exactly(2));
+            _blockWriterMock.Verify(blockWriter => blockWriter.Write(It.IsAny<byte[]>(), It.IsAny<bool>()), Times.Exactly(2));
         }
 
         [Test]

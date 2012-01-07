@@ -76,8 +76,7 @@ namespace Journaler
 
         private void WriteBlock(bool moveToNextBlock)
         {
-            var segment = new ArraySegment<byte>(_buffer.AsArray());
-            _blockWriter.Write(segment, moveToNextBlock);
+            _blockWriter.Write(_buffer.AsArray(), moveToNextBlock);
         }
 
         private void WriteBlockIfRequired(bool flush)

@@ -50,11 +50,10 @@
       <Link>Properties\Version.cs</Link>
     </Compile>
     <Compile Include="ByteRingBuffer.cs" />
+    <Compile Include="FileBlockWriter.cs" />
     <Compile Include="IBlockWriter.cs" />
     <Compile Include="IJournalWriter.cs" />
     <Compile Include="JournalWriter.cs" />
-    <Compile Include="UnbufferedFileStream.cs" />
-    <Compile Include="DiskInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
