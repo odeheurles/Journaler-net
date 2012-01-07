@@ -6,13 +6,13 @@ namespace Journaler.Tests
     [TestFixture]
     public class ByteRingBufferTests
     {
-        private ByteRingBuffer _byteRingBuffer;
+        private ByteRingBuffer _buffer;
         private const int BufferSize = 10;
 
         [SetUp]
         public void SetUp()
         {
-            _byteRingBuffer = new ByteRingBuffer(BufferSize);
+            _buffer = new ByteRingBuffer(BufferSize);
         }
 
         [Test]
@@ -32,13 +32,13 @@ namespace Journaler.Tests
         [Test] 
         public void SizeEqualsInitialSize()
         {
-            Assert.AreEqual(BufferSize, _byteRingBuffer.Size);
+            Assert.AreEqual(BufferSize, _buffer.Size);
         }
 
         [Test]
         public void DefaultPositionIsZero()
         {
-            Assert.AreEqual(0, _byteRingBuffer.Position);
+            Assert.AreEqual(0, _buffer.Position);
         }
 
         [Test]
@@ -46,76 +46,90 @@ namespace Journaler.Tests
         {
             const int expectedPosition = 4;
 
-            _byteRingBuffer.Position = expectedPosition;
+            _buffer.Position = expectedPosition;
 
-            Assert.AreEqual(expectedPosition, _byteRingBuffer.Position);
+            Assert.AreEqual(expectedPosition, _buffer.Position);
         }
 
         [Test]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void SetNegativePositionThrows()
         {
-            _byteRingBuffer.Position = -1;
+            _buffer.Position = -1;
         }
 
         [Test]
         [ExpectedException(typeof(ArgumentOutOfRangeException))]
         public void SetPositionGreaterThanSizeThrows()
         {
-            _byteRingBuffer.Position = BufferSize;
+            _buffer.Position = BufferSize;
         }
 
         [Test]
         public void WriteByteIncreasePositionByOne()
         {
-            _byteRingBuffer.WriteByte(1);
-            Assert.AreEqual(sizeof(byte), _byteRingBuffer.Position);
+            _buffer.WriteByte(1);
+            Assert.AreEqual(sizeof(byte), _buffer.Position);
         }
 
         [Test]
-        public void WriteByteReturnsSameInstance()
+        public void WriteByteThatDoesNotWrapReturnsFalse()
         {
-            Assert.AreSame(_byteRingBuffer, _byteRingBuffer.WriteByte(1));
+            Assert.IsFalse(_buffer.WriteByte(1));
+        }
+
+        [Test]
+        public void WriteByteThatWrapReturnsTrue()
+        {
+            _buffer.Position = BufferSize - 1;
+            Assert.IsTrue(_buffer.WriteByte(1));
         }
 
         [Test]
         public void WriteByteProperlyUpdateBuffer()
         {
             const byte expected = default(byte);
-            _byteRingBuffer.WriteByte(expected);
+            _buffer.WriteByte(expected);
 
-            Assert.AreEqual(expected, _byteRingBuffer[0]);
+            Assert.AreEqual(expected, _buffer[0]);
         }
 
         [Test]
-        public void WriteByteRaisesBufferFullEventIsBufferWraps()
+        public void WriteByteRaisesBufferFullEventIfBufferWraps()
         {
             const byte value = 1;
-            _byteRingBuffer.Position = BufferSize - 1;
+            _buffer.Position = BufferSize - 1;
             int eventRaisedCount = 0;
 
-            _byteRingBuffer.BufferFull +=
+            _buffer.BufferFull +=
                 () =>
                     {
                         eventRaisedCount++;
                     };
-            _byteRingBuffer.WriteByte(value);
+            _buffer.WriteByte(value);
 
-            Assert.AreEqual(0, _byteRingBuffer.Position);
+            Assert.AreEqual(0, _buffer.Position);
             Assert.AreEqual(1, eventRaisedCount);
         }
 
         [Test]
         public void WriteLongIncreasePositionBySizeOfLong()
         {
-            _byteRingBuffer.WriteLong(1L);
-            Assert.AreEqual(sizeof(long), _byteRingBuffer.Position);
+            _buffer.WriteLong(1L);
+            Assert.AreEqual(sizeof(long), _buffer.Position);
         }
 
         [Test]
-        public void WriteLongReturnsSameInstance()
+        public void WriteLongThatDoesNotWrapReturnsFalse()
         {
-            Assert.AreSame(_byteRingBuffer, _byteRingBuffer.WriteLong(1L));   
+            Assert.IsFalse(_buffer.WriteLong(1L));
+        }
+
+        [Test]
+        public void WriteLongThatWrapReturnsTrue()
+        {
+            _buffer.Position = BufferSize - 1;
+            Assert.IsTrue(_buffer.WriteLong(1L));
         }
 
         [Test]
@@ -124,10 +138,10 @@ namespace Journaler.Tests
             const long input = 123456789L;
             var expected = BitConverter.GetBytes(input);
 
-            _byteRingBuffer.WriteLong(input);
+            _buffer.WriteLong(input);
             for (int i = 0; i < sizeof(long); i++)
             {
-                Assert.AreEqual(expected[i], _byteRingBuffer[i]);
+                Assert.AreEqual(expected[i], _buffer[i]);
             }
         }
 
@@ -135,30 +149,37 @@ namespace Journaler.Tests
         public void WriteLongShouldRaiseFullEventWhenBufferWrap()
         {
             int eventRaisedCount = 0;
-            _byteRingBuffer.BufferFull +=
+            _buffer.BufferFull +=
                 () =>
                 {
                     eventRaisedCount++;
                 };
-            _byteRingBuffer.Position = BufferSize - 4;
+            _buffer.Position = BufferSize - 4;
 
-            _byteRingBuffer.WriteLong(1L);
+            _buffer.WriteLong(1L);
 
-            Assert.AreEqual(4, _byteRingBuffer.Position);
+            Assert.AreEqual(4, _buffer.Position);
             Assert.AreEqual(1, eventRaisedCount);
         }
 
         [Test]
         public void WriteIntIncreasePositionBySizeOfLong()
         {
-            _byteRingBuffer.WriteInt(1);
-            Assert.AreEqual(sizeof(int), _byteRingBuffer.Position);
+            _buffer.WriteInt(1);
+            Assert.AreEqual(sizeof(int), _buffer.Position);
         }
 
         [Test]
-        public void WriteIntReturnsSameInstance()
+        public void WriteIntThatDoesNotWrapReturnsFalse()
         {
-            Assert.AreSame(_byteRingBuffer, _byteRingBuffer.WriteInt(1));
+            Assert.IsFalse(_buffer.WriteInt(1));
+        }
+
+        [Test]
+        public void WriteIntThatWrapReturnsTrue()
+        {
+            _buffer.Position = BufferSize - 1;
+            Assert.IsTrue(_buffer.WriteInt(1));
         }
 
         [Test]
@@ -167,10 +188,10 @@ namespace Journaler.Tests
             const int input = 12345;
             var expected = BitConverter.GetBytes(input);
 
-            _byteRingBuffer.WriteInt(input);
+            _buffer.WriteInt(input);
             for (int i = 0; i < sizeof(int); i++)
             {
-                Assert.AreEqual(expected[i], _byteRingBuffer[i]);
+                Assert.AreEqual(expected[i], _buffer[i]);
             }
         }
 
@@ -178,16 +199,16 @@ namespace Journaler.Tests
         public void WriteIntShouldRaiseFullEventWhenBufferWrap()
         {
             int eventRaisedCount = 0;
-            _byteRingBuffer.BufferFull +=
+            _buffer.BufferFull +=
                 () =>
                 {
                     eventRaisedCount++;
                 };
-            _byteRingBuffer.Position = BufferSize - 2;
+            _buffer.Position = BufferSize - 2;
 
-            _byteRingBuffer.WriteInt(1);
+            _buffer.WriteInt(1);
 
-            Assert.AreEqual(2, _byteRingBuffer.Position);
+            Assert.AreEqual(2, _buffer.Position);
             Assert.AreEqual(1, eventRaisedCount);
         }
 
@@ -197,14 +218,21 @@ namespace Journaler.Tests
             const int expectedPosition = 5;
             var input = new byte[expectedPosition];
 
-            _byteRingBuffer.WriteBytes(new ArraySegment<byte>(input));
-            Assert.AreEqual(expectedPosition, _byteRingBuffer.Position);
+            _buffer.WriteBytes(new ArraySegment<byte>(input));
+            Assert.AreEqual(expectedPosition, _buffer.Position);
         }
 
         [Test]
-        public void WriteBytesReturnsSameInstance()
+        public void WriteBytesThatDoesNotWrapReturnsFalse()
         {
-            Assert.AreEqual(_byteRingBuffer, _byteRingBuffer.WriteBytes(new ArraySegment<byte>(new byte[5])));
+            Assert.IsFalse(_buffer.WriteBytes(new ArraySegment<byte>(new byte[1])));
+        }
+
+        [Test]
+        public void WriteBytesThatWrapReturnsTrue()
+        {
+            _buffer.Position = BufferSize - 1;
+            Assert.IsTrue(_buffer.WriteBytes(new ArraySegment<byte>(new byte[2])));
         }
 
         [Test]
@@ -212,10 +240,10 @@ namespace Journaler.Tests
         {
             byte[] bytes = {1, 2, 3, 4};
 
-            _byteRingBuffer.WriteBytes(new ArraySegment<byte>(bytes));
+            _buffer.WriteBytes(new ArraySegment<byte>(bytes));
             for (int i = 0; i < bytes.Length; i++)
             {
-                Assert.AreEqual(bytes[i], _byteRingBuffer[i]);
+                Assert.AreEqual(bytes[i], _buffer[i]);
             }
         }
 
@@ -223,7 +251,7 @@ namespace Journaler.Tests
         public void WriteBytesRaisesBufferFullEventWhenWraps()
         {
             int eventRaisedCount = 0;
-            _byteRingBuffer.BufferFull +=
+            _buffer.BufferFull +=
                 () =>
                 {
                     eventRaisedCount++;
@@ -231,7 +259,7 @@ namespace Journaler.Tests
 
             var bytes = new byte[35];
 
-            _byteRingBuffer.WriteBytes(new ArraySegment<byte>(bytes));
+            _buffer.WriteBytes(new ArraySegment<byte>(bytes));
             Assert.AreEqual(3, eventRaisedCount);
         }
     }

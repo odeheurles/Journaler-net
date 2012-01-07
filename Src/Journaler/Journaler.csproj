@@ -50,12 +50,12 @@
       <Link>Properties\Version.cs</Link>
     </Compile>
     <Compile Include="ByteRingBuffer.cs" />
+    <Compile Include="IBlockWriter.cs" />
+    <Compile Include="IJournalWriter.cs" />
+    <Compile Include="JournalWriter.cs" />
     <Compile Include="UnbufferedFileStream.cs" />
     <Compile Include="DiskInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="FileFormat.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

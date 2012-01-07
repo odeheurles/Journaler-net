@@ -61,8 +61,8 @@ namespace Journaler
         /// If this is the last byte written to the buffer the <see cref="BufferFull"/> event will be raised
         /// </summary>
         /// <param name="value">the value to write to the buffer</param>
-        /// <returns>The same <see cref="ByteRingBuffer"/> so methods can be chained</returns>
-        public ByteRingBuffer WriteByte(byte value)
+        /// <returns>True if the buffer wrapped during the write, False otherwise</returns>
+        public bool WriteByte(byte value)
         {
             _buffer[Position] = value;
 
@@ -75,12 +75,12 @@ namespace Journaler
                 {
                     BufferFull();
                 }
-                return this;
+                return true;
             }
 
             Position++;
 
-            return this;
+            return false;
         }
 
         /// <summary>
@@ -89,15 +89,16 @@ namespace Journaler
         /// and then the remaining bytes will be written at the begining of the buffer.
         /// </summary>
         /// <param name="value">the value to write to the buffer</param>
-        /// <returns>The same <see cref="ByteRingBuffer"/> so methods can be chained</returns>
-        public ByteRingBuffer WriteInt(int value)
+        /// <returns>True if the buffer wrapped during the write, False otherwise</returns>
+        public bool WriteInt(int value)
         {
+            var wrapped = false;
             // TODO: BitConverter would allocate, perf test both options
             for (int i = 0; i < SizeOfInt; i++)
             {
-                WriteByte((byte)(value >> (i * 8)));
+                wrapped |= WriteByte((byte)(value >> (i * 8)));
             }
-            return this;
+            return wrapped;
         }
 
         /// <summary>
@@ -106,29 +107,31 @@ namespace Journaler
         /// and then the remaining bytes will be written at the begining of the buffer.
         /// </summary>
         /// <param name="value">the value to write to the buffer</param>
-        /// <returns>The same <see cref="ByteRingBuffer"/> so methods can be chained</returns>
-        public ByteRingBuffer WriteLong(long value)
+        /// <returns>True if the buffer wrapped during the write, False otherwise</returns>
+        public bool WriteLong(long value)
         {
+            var wrapped = false;
             // TODO: BitConverter would allocate, perf test both options
             for (int i = 0; i < SizeOfLong; i++)
             {
-                WriteByte((byte) (value >> (i*8)));
+                wrapped |= WriteByte((byte)(value >> (i * 8)));
             }
-            return this;
+            return wrapped;
         }
 
         /// <summary>
         /// Write an array of bytes to the buffer
         /// </summary>
         /// <param name="input">The array of byte to write from</param>
-        /// <returns>The same <see cref="ByteRingBuffer"/> so methods can be chained</returns>
-        public ByteRingBuffer WriteBytes(ArraySegment<byte> input)
+        /// <returns>True if the buffer wrapped during the write, False otherwise</returns>
+        public bool WriteBytes(ArraySegment<byte> input)
         {
+            var wrapped = false;
             for (int i = input.Offset; i < input.Offset + input.Count; i++)
             {
-                WriteByte(input.Array[i]);
+                wrapped |= WriteByte(input.Array[i]);
             }
-            return this;
+            return wrapped;
         }
 
         /// <summary>
@@ -139,6 +142,15 @@ namespace Journaler
         public byte this[int index]
         {
             get { return _buffer[index]; }
+        }
+
+        ///<summary>
+        /// Access the underlying byte array
+        ///</summary>
+        ///<returns>the underlying byte array</returns>
+        public byte[] AsArray()
+        {
+            return _buffer;
         }
     }
 }
