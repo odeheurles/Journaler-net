@@ -5,7 +5,7 @@ namespace Journaler
     /// <summary>
     /// TODO
     /// </summary>
-    public interface IJournalWriter
+    public interface IJournalWriter : IDisposable
     {
         /// <summary>
         /// Write a single byte to the journal

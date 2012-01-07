@@ -7,13 +7,14 @@ namespace Journaler
     /// </summary>
     public class JournalWriter : IJournalWriter
     {
-        private readonly IBlockWriter _blockWriter;
+        private IBlockWriter _blockWriter;
         private readonly ByteRingBuffer _buffer;
 
         /// <summary>
         /// Create a new instance of <see cref="JournalWriter"/>
         /// </summary>
-        /// <param name="bufferSize">size of the buffer, IOs will be writen to disk in blocks of this size. Must be a multiple of the disk sector size.</param>
+        /// <param name="bufferSize">size of the buffer, IOs will be writen to disk in blocks of this size. Must be a multiple of the disk sector size.
+        /// You can use the following command to determine your disk sector size: "fsutil fsinfo ntfsinfo c:"</param>
         /// <param name="blockWriter">the <see cref="IBlockWriter"/> used to write to disk.</param>
         public JournalWriter(int bufferSize, IBlockWriter blockWriter)
         {
@@ -90,6 +91,18 @@ namespace Journaler
         private void OnBufferFull()
         {
             WriteBlock(true);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public void Dispose()
+        {
+            if(_blockWriter != null)
+            {
+                _blockWriter.Dispose();
+                _blockWriter = null;
+            }
         }
     }
 }
